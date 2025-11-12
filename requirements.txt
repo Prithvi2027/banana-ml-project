@@ -1,0 +1,11 @@
+torch
+torchvision
+flask
+flask-cors
+pillow
+numpy
+matplotlib
+scikit-learn
+tqdm
+opencv-python
+albumentations
