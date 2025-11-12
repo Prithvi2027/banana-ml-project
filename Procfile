@@ -1,2 +1,2 @@
-web: gunicorn src.app:app --bind 0.0.0.0:${PORT:-8000}
+web: python -m gunicorn src.app:app --bind 0.0.0.0:${PORT:-8000}
 
