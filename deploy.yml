@@ -1,0 +1,58 @@
+name: Deploy Banana ML Project
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run smoke tests
+        run: |
+          python -m compileall src
+
+      - name: Trigger Render deployment
+        if: ${{ secrets.RENDER_SERVICE_ID != '' && secrets.RENDER_API_TOKEN != '' }}
+        env:
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+          RENDER_API_TOKEN: ${{ secrets.RENDER_API_TOKEN }}
+        run: |
+          echo "Triggering Render deploy for service $RENDER_SERVICE_ID"
+          curl -fsSL -X POST \
+            https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys \
+            -H "Authorization: Bearer $RENDER_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            || (echo "Render deploy trigger failed" && exit 1)
+
+      - name: Install Netlify CLI
+        if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' && secrets.NETLIFY_SITE_ID != '' }}
+        run: npm install -g netlify-cli
+
+      - name: Deploy frontend to Netlify
+        if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' && secrets.NETLIFY_SITE_ID != '' }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          netlify deploy \
+            --dir=frontend \
+            --prod \
+            --message "Automated deploy from GitHub Actions"
