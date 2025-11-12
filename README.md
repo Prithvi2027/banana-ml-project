@@ -46,16 +46,19 @@ pip install -r requirements.txt
 ```
 
 **Note**: If you have CUDA GPU available, install PyTorch with CUDA support for faster training:
+
 ```bash
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 ```
 
 ### 2. Dataset Configuration
 
-The dataset is already downloaded at:
-`C:\Users\Admin\Downloads\archive\Banana Ripeness Classification Dataset`
+By default, the project looks for the dataset in `data/Banana Ripeness Classification Dataset`.  
+Set the `DATASET_PATH` environment variable if your dataset lives elsewhere:
 
-The config file (`src/config.py`) is already set up with this path. If your dataset is in a different location, update the `DATASET_PATH` variable in `src/config.py`.
+```bash
+export DATASET_PATH=/absolute/path/to/Banana\ Ripeness\ Classification\ Dataset
+```
 
 ### 3. Train the Model
 
@@ -65,6 +68,7 @@ python train.py
 ```
 
 **Training Features:**
+
 - Automatic GPU detection (uses CUDA if available, else CPU)
 - Data augmentation (rotation, flips, color jitter)
 - Learning rate scheduling
@@ -74,10 +78,12 @@ python train.py
 - Test evaluation with confusion matrix
 
 **Expected Training Time:**
+
 - With GPU: ~10-20 minutes
 - With CPU: ~1-2 hours
 
 **Training Output:**
+
 - Best model: `models/best_model.pth`
 - Final model: `models/final_model.pth`
 - Training curves: `models/training_history.png`
@@ -95,6 +101,7 @@ Then open your browser and visit: **http://localhost:5000**
 ## 🎯 Model Performance
 
 The model achieves:
+
 - **Test Accuracy**: ~90-95% (depending on training)
 - **4 Classes**: Unripe, Ripe, Overripe, Rotten
 - **Days Prediction Mapping**:
@@ -136,20 +143,76 @@ CLASS_TO_DAYS = {
     'overripe': 1,
     'rotten': 0
 }
+
+# Deployment overrides
+BEST_MODEL_PATH = os.getenv("MODEL_PATH", DEFAULT_BEST_MODEL)
 ```
+
+## ☁️ Deployment
+
+The project is split into a Flask inference API and a static web frontend.
+
+### Backend (Render.com)
+
+1. Push the repository to GitHub/GitLab.
+2. Create a new **Web Service** on Render and point it at the repo.
+3. Render reads `render.yaml`:
+   - Installs dependencies with `pip install -r requirements.txt`.
+   - Starts the API via `gunicorn src.app:app`.
+   - Exposes `/health` for health checks.
+4. In the Render dashboard, set:
+   - `MODEL_PATH = models/best_model.pth` (or wherever the checkpoint lives).
+   - `FINAL_MODEL_PATH` if you need the fallback file.
+5. Upload `models/best_model.pth` to the Render service using persistent disk, a startup script, or object storage.
+6. Deploy and confirm the API works: `curl https://<render-app>.onrender.com/health`.
+
+### Frontend (Netlify)
+
+1. The static build lives in `frontend/`.
+2. Before deploying, edit `frontend/_redirects` and replace `https://YOUR-RENDER-APP.onrender.com` with the public URL of your Render backend.
+3. In Netlify:
+   - Create a new site and choose **Deploy without build**.
+   - Point the publish directory to `frontend`.
+   - Drag-and-drop or connect to your repo.
+4. Once live, the Netlify site proxies `/predict` and `/health` to the backend.
+5. Test end-to-end by uploading a banana photo on the Netlify URL.
+
+### CI/CD Automation
+
+A GitHub Actions workflow (`.github/workflows/deploy.yml`) automates deployments:
+
+- Installs backend dependencies and runs a quick smoke test (`python -m compileall src`).
+- Hits the Render API to trigger a new deploy when the secrets `RENDER_API_TOKEN` and `RENDER_SERVICE_ID` are present.
+- Uses the Netlify CLI to publish the `frontend/` directory when the secrets `NETLIFY_AUTH_TOKEN` and `NETLIFY_SITE_ID` are set.
+
+**Setup steps:**
+
+1. Create the Render service manually once (via `render.yaml`), then copy its Service ID from the dashboard.
+2. Generate a Render API key and add the following repository secrets:
+   - `RENDER_SERVICE_ID`
+   - `RENDER_API_TOKEN`
+3. Create a Netlify site pointing to the same repo and note its Site ID.
+4. Generate a Netlify Personal Access Token and add these secrets:
+   - `NETLIFY_SITE_ID`
+   - `NETLIFY_AUTH_TOKEN`
+
+Push to `main` (or use the “Run workflow” button) to deploy both backend and frontend automatically.
 
 ## 🧪 Testing the Model
 
 ### Option 1: Use Test Script
+
 ```bash
 cd src
 python train.py  # This includes evaluation on test set
 ```
 
 ### Option 2: Test Individual Images
+
 Use the web interface at http://localhost:5000
 
 ### Option 3: Programmatic Testing
+
 ```python
 from PIL import Image
 from model import BananaRipenessModel
@@ -180,17 +243,21 @@ print(f"Class: {class_name}, Days left: {days_left}")
 ## 📊 API Endpoints
 
 ### GET `/`
+
 Renders the web interface
 
 ### POST `/predict`
+
 Predicts banana ripeness from uploaded image
 
 **Request:**
+
 - Method: POST
 - Content-Type: multipart/form-data
 - Body: `file` (image file)
 
 **Response:**
+
 ```json
 {
   "class": "ripe",
@@ -209,9 +276,11 @@ Predicts banana ripeness from uploaded image
 ```
 
 ### GET `/health`
+
 Health check endpoint
 
 **Response:**
+
 ```json
 {
   "status": "healthy",
@@ -236,22 +305,29 @@ ResNet-50 (Pretrained on ImageNet)
 ## 🛠️ Troubleshooting
 
 ### Issue: "No trained model found"
+
 **Solution**: Train the model first using `python src/train.py`
 
 ### Issue: CUDA out of memory
+
 **Solution**: Reduce batch size in `config.py`:
+
 ```python
 BATCH_SIZE = 16  # or 8
 ```
 
 ### Issue: Slow training on CPU
+
 **Solution**: Either install CUDA-enabled PyTorch or reduce model complexity:
+
 ```python
 MODEL_NAME = 'mobilenet_v2'  # Lighter model
 ```
 
 ### Issue: Import errors
+
 **Solution**: Make sure you're in the correct directory:
+
 ```bash
 cd src
 python train.py  # or python app.py
@@ -268,6 +344,9 @@ python train.py  # or python app.py
 - [ ] Implement regression for exact day prediction
 - [ ] Add batch prediction support
 
+## 📄 License
+
+This project is open source and available under the MIT License.
 
 ## 🙏 Acknowledgments
 
@@ -281,3 +360,4 @@ For questions or issues, please open an issue on GitHub.
 
 ---
 
+**Happy Banana Classification! 🍌**
