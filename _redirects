@@ -1,0 +1,4 @@
+# Update the Render URL below after provisioning the backend.
+/predict https://YOUR-RENDER-APP.onrender.com/predict 200
+/health https://YOUR-RENDER-APP.onrender.com/health 200
+

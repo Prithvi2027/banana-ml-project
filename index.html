@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍌 AI Banana Ripeness Analyzer</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="floating-bananas">
+            <div class="floating-banana" style="top: 10%; left: 10%;">🍌</div>
+            <div class="floating-banana" style="top: 20%; right: 15%; animation-delay: 1s;">🍌</div>
+            <div class="floating-banana" style="bottom: 15%; left: 20%; animation-delay: 2s;">🍌</div>
+            <div class="floating-banana" style="bottom: 25%; right: 10%; animation-delay: 3s;">🍌</div>
+        </div>
+
+        <div class="content">
+            <h1>🍌 AI Banana Ripeness Analyzer</h1>
+            <p class="subtitle">Deep Learning Model trained on 5000+ banana images</p>
+            <p class="model-info">Powered by ResNet-50 CNN • 4 Ripeness Classes • Real-time Prediction</p>
+
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📸</div>
+                <div class="upload-text">Click or drag a banana image here</div>
+                <div class="upload-subtext">Supports: JPG, PNG, WEBP</div>
+                <input type="file" id="fileInput" accept="image/*">
+            </div>
+
+            <div class="preview-container" id="previewContainer">
+                <img id="imagePreview" class="image-preview" alt="Banana preview">
+            </div>
+
+            <div class="analyzing" id="analyzing">
+                <div class="spinner"></div>
+                <p>🔬 Analyzing banana with Deep Learning model...</p>
+            </div>
+
+            <div class="results" id="results">
+                <div class="ripeness-indicator">
+                    <div class="ripeness-stage" id="ripenessStage">🟢 Perfect for eating</div>
+                    <div class="days-left" id="daysLeft">3 days</div>
+                    <p>Until the banana becomes overripe</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+
+                <div class="details">
+                    <div class="detail-item">
+                        <span class="detail-label">Classification:</span>
+                        <span class="detail-value" id="classification">Ripe</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Model Confidence:</span>
+                        <span class="detail-value" id="confidence">95.3%</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Recommendation:</span>
+                        <span class="detail-value" id="recommendation">Eat within 2-3 days</span>
+                    </div>
+                </div>
+
+                    <div class="probabilities" id="probabilities">
+                    <h3>Class Probabilities</h3>
+                    <div class="prob-bars" id="probBars"></div>
+                </div>
+
+                <button class="reset-btn" id="resetBtn">Analyze Another Banana 🍌</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./script.js"></script>
+</body>
+</html>
+
